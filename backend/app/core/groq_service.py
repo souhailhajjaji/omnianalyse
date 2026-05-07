@@ -56,7 +56,7 @@ async def generate_scenarios_from_code(source_code: str) -> str:
                 "content": prompt
             }
         ],
-        model="llama-3.1-8b-instant",
+        model="llama-3.1-70b-versatile",
         temperature=0.2,
         max_tokens=4000
     )
@@ -293,7 +293,7 @@ async def generate_user_stories_from_code(source_code: str) -> str:
                 "content": prompt
             }
         ],
-        model="llama-3.1-8b-instant",
+        model="llama-3.1-70b-versatile",
         temperature=0.3,
         max_tokens=3000
     )
@@ -368,7 +368,7 @@ async def generate_user_stories_from_requirements(requirements: str) -> str:
                 "content": prompt
             }
         ],
-        model="llama-3.1-8b-instant",
+        model="llama-3.1-70b-versatile",
         temperature=0.4,
         max_tokens=8000
     )
