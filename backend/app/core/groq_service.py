@@ -345,21 +345,15 @@ title: [titre]
 Critères: [ ] 1, [ ] 2, [ ] 3
 ---
 
-RÈGLES CRITIQUES À SUIVRE ABSOLUMENT:
-1. LISTER TOUS LES MODULES DES EXIGENCES: Auth, Dashboard, Admin Users, PIM, Navigation, Time, Recruitment, My Info, Performance, Directory, Claim, Buzz
-2. Pour CHAQUE module ci-dessus: générer au minimum 1-2 user stories
-3. Rôles à utiliser selon le module:
-   - Admin: Administration, gestion utilisateurs/rôles/permissions
-   - Employé/Candidat/Manager selon le contexte
-4. TOUTES les sections 1-12 des exigences DOIVENT être couvertes
-5. Nombre minimum: 18 user stories (un par fonctionnalité majeure)"""
+RÈGLES CRITIQUES:
+1. TOUS LES MODULES (12): Auth, Dashboard, Admin, PIM, Navigation, Time, Recruitment, My Info, Performance, Directory, Claim, Buzz
+2. Chaque fonctionnalité ci-dessous = 1 user story
+3. Rôles: Admin (gestion), Employé (consult/modif), Candidat (candidature), Manager (evaluation)
+4. Minimum: 20 user stories"""
 
 async def generate_user_stories_from_requirements(requirements: str) -> str:
     """
     Generate user stories from text requirements using AI.
-    
-    Uses llama-3.1-8b-instant model.
-    Automatically detects if input is spec file, markdown, or plain text.
     """
     prompt = _build_requirements_prompt(requirements)
     
@@ -376,7 +370,7 @@ async def generate_user_stories_from_requirements(requirements: str) -> str:
         ],
         model="llama-3.1-8b-instant",
         temperature=0.4,
-        max_tokens=6000
+        max_tokens=8000
     )
     
     return chat_completion.choices[0].message.content
@@ -385,31 +379,110 @@ async def generate_user_stories_from_requirements(requirements: str) -> str:
 def _build_requirements_prompt(requirements: str) -> str:
     """Build prompt for user stories from requirements."""
     
-    prompt = f"""Analyse ce fichier d'exigencesCOMPLET et génère des user stories pour CHAQUE module.
+    prompt = f"""Fichier d'exigences COMPLET - génère MINIMUM 20 user stories pour TOUTES les fonctionnalités:
 
-## EXIGENCES COMPLETES:
 ```
 {requirements}
 ```
 
 ---
-LISTE OBLIGATOIRE des modules à couvrir (chaque ligne = au moins 1 user story):
+LISTE EXHAUSTIVE DES FONCTIONNALITÉS PAR MODULE (1 user story chacune MINIMUM):
 
-1. AUTHENTIFICATION: username, password, forgot password, roles Admin/ESS
-2. DASHBOARD: Time at Work, My Actions, Quick Launch, Buzz Latest Posts
-3. ADMIN USERS: recherche, pagination, tri, Add/Edit/Delete, Reset filters, Enabled/Disabled
-4. PIM: recherche employé, filtre Current Only, liste/tableau, Configuration, Reports
-5. NAVIGATION: menu latéral Admin/PIM/Leave/Time/Recruitment/My Info/Performance/Directory/Maintenance/Claim/Dashboard, barre recherche, Upgrade
-6. TIME: Employee Name required, Timesheets Pending Action, dates période, sous-modules Attendance/Reports/Project Info
-7. RECRUITMENT: recherche avancée (Job Title/Vacancy/Hiring Manager/Status/Candidate Name/Keywords/Date/Method), Add candidate, liste candidats, statuts, View/Delete/Download
-8. MY INFO: Personal Details,calendrier/date picker,menulatéral(Contact/Emergency/Dependents/Immigration/Job/Salary/Report-to),Custom Fields,Attachments(File Name/Description/Size/Type/Date Added/Added By)
-9. PERFORMANCE:filtres(Employee Name/Job Title/Sub Unit/Review Status/From Date/To Date),Include Current Only,oñets(Configure/Manage Reviews/My Trackers/Employee Trackers)
-10. DIRECTORY: recherche(Employee Name/Job Title/Location),cartes visuels,"Records Found"
-11. CLAIM:filtres(Employee Name/Reference Id/Event Name/Status/dates),multi-devises,statut(Initiated/Submitted),onglets(Submit Claim/My Claims/Employee Claims/Assign Claim),View Details
-12. BUZZ: What's on your mind?,Post,Share Photos/Video,Like/Comment/Share,Most Recent/Liked/Commented,Upcoming Anniversaries
+=== AUTH (1-4) ===
+- Connexion username/password
+- Lien forgot password + réinitialisation
+- Différenciation rôles Admin/ESS
+- Modification mot de passe via menu profil
+
+=== DASHBOARD (5-8) ===
+- Widget Time at Work (Punched In/Out, heures travaillées)
+- Widget My Actions (tâches en attente)
+- Raccourci Quick Launch
+- Widget Buzz Latest Posts
+
+=== ADMIN USERS (9-13) ===
+- Recherche par Username/User Role/Employee Name/Status
+- Tableau paginé avec tri par colonne
+- Ajout nouvel utilisateur (+ Add)
+- Édition/suppression utilisateur (✏️/🗑️)
+- Reset filtres, statut Enabled/Disabled
+
+=== PIM (14-17) ===
+- Recherche employé par Employee Name/Id/Status/Supervisor/Job Title/Sub Unit
+- Filtre Current Employees Only
+- Bouton Configuration (champs personnalisés)
+- Onglet Reports (rapports employés)
+
+=== NAVIGATION (18-21) ===
+- Menu latéral Admin/PIM/Leave/Time/Recruitment/My Info/Performance/Directory/Maintenance/Claim
+- Barre recherche globale
+- Masquer menu (bouton ‹)
+- Bouton Upgrade (version premium)
+
+=== TIME (22-26) ===
+- Sélection Employee Name (* Required)
+- Timesheets Pending Action
+- Période dates (début - fin)
+- Sous-module Attendance
+- Sous-module Project Info
+
+=== RECRUITMENT (27-34) ===
+- Recherche avancée (Job Title/Vacancy/Hiring Manager/Status/Candidate Name/Keywords/Date/Method)
+- Recherche par mots-clés (virgules)
+- Filtre date (From/To)
+- Ajout candidat (+ Add)
+- Liste candidats (Vacancy/Candidate/Hiring Manager/Date/Status)
+- Statuts candidature (Initiated, Shortlisted)
+- View candidat (👁️)
+- Download CV candidat (⬇️)
+
+=== MY INFO (35-43) ===
+- Consultation Personal Details (Nom/ID/Permis/Nationalité/État civil/Date naissance/Genre)
+- Format ID multiples (Employee Id, Other Id)
+- Date picker (License Expiry, Date of Birth)
+- Menu latéral (Contact Details/Emergency Contacts/Dependents/Immigration/Job/Salary/Report-to)
+- Custom Fields (Blood Type)
+- Save Custom Fields
+- Attachments (ajout + Add)
+- Métadonnées fichiers (Name/Description/Size/Type/Date/Added By)
+- Edit/Delete/TéléchargerAttachment
+
+=== PERFORMANCE (44-50) ===
+- Filtres Employee Name/Job Title/Sub Unit/Review Status/From Date/To Date
+- Filtre Include Current Employees Only
+- Informations (Review Period/Due Date/Review Status)
+- Onglet Configure
+- Onglet Manage Reviews
+- Onglet My Trackers
+- Onglet Employee Trackers
+
+=== DIRECTORY (51-54) ===
+- Recherche Employee Name/Job Title/Location
+- Cartes visuels employés
+- Affichage "Records Found"
+
+=== CLAIM (55-63) ===
+- Filtres Employee Name/Reference Id/Event Name/Status/dates
+- Multi-devises (INR, DZD, CAD)
+- Cycle de vie réclamation (Initiated, Submitted)
+- Bouton Assign Claim
+- Onglet Submit Claim
+- Onglet My Claims
+- Onglet Employee Claims
+- View Details
+
+=== BUZZ (64-70) ===
+- Création publication ("What's on your mind?")
+- Bouton Post
+- Share Photos
+- Share Video
+- Like/Comment/Share
+- Tri Most Recent/Liked/Commented
+- Widget Upcoming Anniversaries
 
 ---
-Génère AU FORMAT REQUIRED - Minimum 18 user stories pour couvrir TOUS les modules ci-dessus.
+Génère AU FORMAT REQUIRED - MINIMUM 20 user stories.
+Chaque fonctionnalité ci-dessus = 1 user story.
 ---
 """
     
