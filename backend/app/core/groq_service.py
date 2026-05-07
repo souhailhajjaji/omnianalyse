@@ -295,7 +295,7 @@ async def generate_user_stories_from_code(source_code: str) -> str:
         ],
         model="llama-3.1-8b-instant",
         temperature=0.3,
-        max_tokens=3000
+        max_tokens=4000
     )
     
     return chat_completion.choices[0].message.content
@@ -372,11 +372,12 @@ RÈGLES CRITIQUES:
 - Analyse les exigences pour identifier TOUS les rôles différents (administrateur, utilisateur, employé, visiteur, etc.)
 - Chaque rôle doit avoir ses propres user stories
 - Ne pas répéter le même rôle pour toutes les stories
-- Par exemple: Gestion d'employés → role="administrateur", Consultation → role="employé"
+- Par exemple: Gestion d'employés -> role="administrateur", Consultation -> role="employé"
 - Maximum 3 critères d'acceptation par user story
-- Génère minimum 5 user stories selon la complexité des exigences
+- Génère minimum 30 user stories (OBLIGATOIRE)
 - Utilise le français pour tout le contenu
-- Sois précis dans les rôles: "administrateur", "utilisateur", "employé", "visiteur" - pas de répétition inutile"""
+- Sois précis dans les rôles: "administrateur", "utilisateur", "employé", "visiteur" - pas de repetition inutile
+- Chaque exigence "Le système doit..." doit devenir une user story complète
 
 
 async def generate_user_stories_from_requirements(requirements: str) -> str:
@@ -421,16 +422,16 @@ def _build_requirements_prompt(requirements: str) -> str:
 CONSEILS POUR IDENTIFIER LES RÔLES:
 - Lis attentivement les exigences
 - Identifie tous les rôles mentionnés: administrateur, utilisateur, employé, visiteur, gestionnaire, etc.
-- Chaque fonctionnalité est liée à un rôle spécifique
+- Chaque fonctionnalite est liee a un role specifique
 - Par exemple:
-  * "L'administrateur peut ajouter/modifier/supprimer des employés" → rôle: administrateur
-  * "L'employé peut consulter ses informations" → rôle: employé
-  * "L'utilisateur peut se connecter" → rôle: utilisateur
+  * "L'administrateur peut ajouter/modifier/supprimer des employes" - role: administrateur
+  * "L'employe peut consulter ses informations" - role: employe
+  * "L'utilisateur peut se connecter" - role: utilisateur
 
 ---
-Génère exactement AU FORMAT REQUIRED ci-dessus. Commence par "---".
-Nombre de user stories: Minimum 5, Maximum 15 (selon complexité et nombre de rôles)
-Assure-toi d'inclure des user stories pour DIFFÉRENTS rôles identifiés dans les exigences.
+Genere exactement AU FORMAT REQUIRED ci-dessus. Commence par "---".
+Nombre de user stories: Minimum 30, Maximum 50 (OBLIGATOIRE - chaque exigence doit devenir une user story)
+Assure-toi d'inclure des user stories pour DIFFERENTS roles identifies dans les exigences.
 ---
 """
     

@@ -28,7 +28,7 @@ async def generate_user_stories_from_text_requirements(body: RequirementsInput):
     - Automatically saved to user-stories.md if save_to_file=True
     """
     if not body.content or not body.content.strip():
-        raise HTTPException(status_code=400, content={"error": "No requirements content provided"})
+        raise HTTPException(status_code=400, detail="No requirements content provided")
     
     try:
         ai_output = await generate_user_stories_from_requirements(body.content)
@@ -47,7 +47,7 @@ async def generate_user_stories_from_text_requirements(body: RequirementsInput):
         }
     
     except Exception as e:
-        raise HTTPException(status_code=500, content={"error": str(e)})
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/generate-from-text")
@@ -78,4 +78,4 @@ async def generate_from_text(requirements: str):
         }
     
     except Exception as e:
-        raise HTTPException(status_code=500, content={"error": str(e)})
+        raise HTTPException(status_code=500, detail=str(e))
