@@ -374,11 +374,11 @@ RÈGLES CRITIQUES:
 - Ne pas répéter le même rôle pour toutes les stories
 - Par exemple: Gestion d'employés -> role="administrateur", Consultation -> role="employé"
 - Maximum 3 critères d'acceptation par user story
-- Génère minimum 30 user stories (OBLIGATOIRE)
+- Genere minimum 35 user stories (OBLIGATOIRE)
 - Utilise le français pour tout le contenu
 - Sois précis dans les rôles: "administrateur", "utilisateur", "employé", "visiteur" - pas de repetition inutile
-- Chaque exigence "Le système doit..." doit devenir une user story complète
-
+- Chaque exigence "Le systeme doit..." doit devenir une user story complete
+"""
 
 async def generate_user_stories_from_requirements(requirements: str) -> str:
     """
@@ -402,7 +402,7 @@ async def generate_user_stories_from_requirements(requirements: str) -> str:
         ],
         model="llama-3.1-8b-instant",
         temperature=0.3,
-        max_tokens=4000
+        max_tokens=6000
     )
     
     return chat_completion.choices[0].message.content
@@ -430,7 +430,7 @@ CONSEILS POUR IDENTIFIER LES RÔLES:
 
 ---
 Genere exactement AU FORMAT REQUIRED ci-dessus. Commence par "---".
-Nombre de user stories: Minimum 30, Maximum 50 (OBLIGATOIRE - chaque exigence doit devenir une user story)
+Nombre de user stories: Minimum 35, Maximum 65 (OBLIGATOIRE - chaque exigence doit devenir une user story)
 Assure-toi d'inclure des user stories pour DIFFERENTS roles identifies dans les exigences.
 ---
 """
