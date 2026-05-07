@@ -349,7 +349,7 @@ depends_on: []
 
 ## User story
 
-**En tant que** [rôle précise: administrateur, utilisateur, employé, visiteur, etc.]
+**En tant que** [rôle précise: administrateur, utilisateur, employé, candidat, visiteur, manager, etc.]
 **Je veux** [fonctionnalité]
 **Afin de** [bénéfice]
 
@@ -369,14 +369,14 @@ _(optionnel — hérite de la DoD globale si omis)_
 ---
 
 RÈGLES CRITIQUES:
-- Analyse les exigences pour identifier TOUS les rôles différents (administrateur, utilisateur, employé, visiteur, etc.)
-- Chaque rôle doit avoir ses propres user stories
-- Ne pas répéter le même rôle pour toutes les stories
-- Par exemple: Gestion d'employés → role="administrateur", Consultation → role="employé"
+- Analyse CHAQUE SECTION/SOUS-MODULE des exigences indépendamment
+- Utilise le rôle approprié selon le module (ex: Admin pour Admin, Candidat pour Recruitment, Manager pour Performance)
+- Chaque fonctionnalité majeure de chaque module DOIT être une user story séparée
+- Modules à couvrir obligatoirement: Time, Recruitment, My Info, Performance, Directory, Claim, Buzz
+- Pour chaque section 1 à 12: génère au moins 1-2 user stories
 - Maximum 3 critères d'acceptation par user story
-- Génère minimum 5 user stories selon la complexité des exigences
 - Utilise le français pour tout le contenu
-- Sois précis dans les rôles: "administrateur", "utilisateur", "employé", "visiteur" - pas de répétition inutile"""
+- Sois précis: n'utilise pas "utilisateur" quand "employé", "candidat", "manager" est plus approprié"""
 
 
 async def generate_user_stories_from_requirements(requirements: str) -> str:
@@ -414,23 +414,19 @@ def _build_requirements_prompt(requirements: str) -> str:
 
 ## EXIGENCES À ANALYSER:
 ```
-{requirements[:3000]}
+{requirements[:4000]}
 ```
 
 ---
-CONSEILS POUR IDENTIFIER LES RÔLES:
-- Lis attentivement les exigences
-- Identifie tous les rôles mentionnés: administrateur, utilisateur, employé, visiteur, gestionnaire, etc.
-- Chaque fonctionnalité est liée à un rôle spécifique
-- Par exemple:
-  * "L'administrateur peut ajouter/modifier/supprimer des employés" → rôle: administrateur
-  * "L'employé peut consulter ses informations" → rôle: employé
-  * "L'utilisateur peut se connecter" → rôle: utilisateur
+STRUCTUREÀ RESPECTER:
+- Chaque section numérotée (1, 2, 3...12) doit donner lieu à des user stories
+- Chaque sous-module/forctionnalité doit être une user story séparée
+- Utilise les roles spécifiques: Admin pour Admin, Employé pour My Info/Time, Candidat pour Recruitment, Manager pour Performance, etc.
 
 ---
-Génère exactement AU FORMAT REQUIRED ci-dessus. Commence par "---".
-Nombre de user stories: Minimum 5, Maximum 15 (selon complexité et nombre de rôles)
-Assure-toi d'inclure des user stories pour DIFFÉRENTS rôles identifiés dans les exigences.
+Genre exactement AU FORMAT REQUIRED ci-dessus. Commence par "---".
+Nombre de user stories: Minimum 15, Maximum 25 (pour couvrir tous les modules)
+Tout les modules et fonctionnalités des exigences doivent être couverts.
 ---
 """
     
