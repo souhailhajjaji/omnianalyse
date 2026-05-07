@@ -56,7 +56,7 @@ async def generate_scenarios_from_code(source_code: str) -> str:
                 "content": prompt
             }
         ],
-        model="llama-3.1-70b-versatile",
+        model="llama-3.1-8b-instant",
         temperature=0.2,
         max_tokens=4000
     )
@@ -293,7 +293,7 @@ async def generate_user_stories_from_code(source_code: str) -> str:
                 "content": prompt
             }
         ],
-        model="llama-3.1-70b-versatile",
+        model="llama-3.1-8b-instant",
         temperature=0.3,
         max_tokens=3000
     )
@@ -333,26 +333,59 @@ Critères: [ ] Le formulaire de connexion s'affiche, [ ] Les identifiants sont v
     return prompt
 
 
-SYSTEM_PROMPT_REQUIREMENTS = """Tu es un expert en gestion de projet agile. Génère DES user stories COMPLÈTES avec VRAIS critères.
+SYSTEM_PROMPT_REQUIREMENTS = """Tu es un expert en gestion de projet agile qui génère des user stories à partir d'exigences fonctionnelles.
 
-Format STRICT:
+RÈGLES OBLIGATOIRES:
+- Format REQUIRED (chaque user story doit avoir ce format exact):
 ---
 id: STORY-XXX
-title: [titre]
-**En tant que** [rôle précis]
-**Je veux** [fonctionnalité]
-**Afin de** [bénéfice]
-Critères: [ ] critère réel 1, [ ] critère réel 2, [ ] critère réel 3
+title: [titre court]
+status: todo
+priority: [high|medium|low]
+scope: [backend|frontend]
+estimate: [XS|S|M|L|XL]
+depends_on: []
 ---
 
-RÈGLES:
-1. 70 fonctionnalités = 70 user stories MINIMUM
-2. Chaque critère doit être-SPÉCIFIQUE (pas "Critère à définir")
-3. Utilise les critères DU FICHIER d'exigences
-4. 12 modules à couvrir ABSOLUMENT"""
+## User story
+
+**En tant que** [rôle précise: administrateur, utilisateur, employé, visiteur, etc.]
+**Je veux** [fonctionnalité]
+**Afin de** [bénéfice]
+
+## Critères d'acceptation
+
+- [ ] [critère 1]
+- [ ] [critère 2]
+- [ ] [critère 3]
+
+## Notes techniques
+
+_(optionnel)_
+
+## Definition of Done
+
+_(optionnel — hérite de la DoD globale si omis)_
+---
+
+RÈGLES CRITIQUES:
+- Analyse les exigences pour identifier TOUS les rôles différents (administrateur, utilisateur, employé, visiteur, etc.)
+- Chaque rôle doit avoir ses propres user stories
+- Ne pas répéter le même rôle pour toutes les stories
+- Par exemple: Gestion d'employés → role="administrateur", Consultation → role="employé"
+- Maximum 3 critères d'acceptation par user story
+- Génère minimum 5 user stories selon la complexité des exigences
+- Utilise le français pour tout le contenu
+- Sois précis dans les rôles: "administrateur", "utilisateur", "employé", "visiteur" - pas de répétition inutile"""
+
 
 async def generate_user_stories_from_requirements(requirements: str) -> str:
-    """Generate user stories from text requirements."""
+    """
+    Generate user stories from text requirements using AI.
+    
+    Uses llama-3.1-8b-instant model.
+    Automatically detects if input is spec file, markdown, or plain text.
+    """
     prompt = _build_requirements_prompt(requirements)
     
     chat_completion = await client.chat.completions.create(
@@ -366,119 +399,38 @@ async def generate_user_stories_from_requirements(requirements: str) -> str:
                 "content": prompt
             }
         ],
-        model="llama-3.1-70b-versatile",
+        model="llama-3.1-8b-instant",
         temperature=0.3,
-        max_tokens=10000
+        max_tokens=4000
     )
     
     return chat_completion.choices[0].message.content
 
 
 def _build_requirements_prompt(requirements: str) -> str:
-    """Build prompt - force TOUTES les 70 fonctionnalités."""
+    """Build prompt for user stories from requirements."""
     
-    prompt = f"""Fichier exigence: {requirements}
+    prompt = f"""Analyse ces exigences et génère les user stories correspondantes.
+
+## EXIGENCES À ANALYSER:
+```
+{requirements[:3000]}
+```
 
 ---
-OBLIGATOIRE: 70 fonctionnalités = 70 user stories AVEC CRITÈRES RÉELS
-
-=== AUTH (1-4) ===
-1. Connexion username/password
-2. Lien forgot password + réinitialisation email
-3. Rôles Admin/ESS + restriction modules
-4. Modifier mot deasse via menu profil
-
-=== DASHBOARD (5-8) ===
-5. Widget Time at Work (Punched In/Out)
-6. Widget My Actions (tâches attente)
-7. Quick Launch
-8. Buzz Latest Posts
-
-=== ADMIN USERS (9-13) ===
-9. Recherche Username/User Role/Employee Name/Status
-10. Tableau paginé + tri colonne
-11. + Add utilisateur
-12. ✏️ Edit / 🗑️ Delete
-13. Reset filtres, Enabled/Disabled
-
-=== PIM (14-17) ===
-14. Recherche Employee Name/Id/Status/Supervisor/Job/Sub Unit
-15. Filtre Current Employees Only
-16. Configuration champs
-17. Reports employés
-
-=== NAVIGATION (18-21) ===
-18. Menu latéral (Admin/PIM/Leave/Time...)
-19. Barre recherche globale
-20. Masquer menu ‹
-21. Bouton Upgrade
-
-=== TIME (22-26) ===
-22. Employee Name * Required
-23. Timesheets Pending Action
-24. Dates période
-25. Attendance
-26. Project Info
-
-=== RECRUITMENT (27-34) ===
-27. Recherche Job Title/Vacancy/Hiring Manager/Status
-28. Mots-clés virgules
-29. Filtre Date From/To
-30. + Add candidat
-31. Liste Vacancy/Candidate/Manager/Date/Status
-32. Statuts (Initiated, Shortlisted)
-33. 👁️ View
-34. ⬇️ Download CV
-
-=== MY INFO (35-43) ===
-35. Personal Details (Nom/ID/Nationalité/Genre)
-36. Date picker
-37. Menu (Contact/Emergency/Dependents/Job/Salary)
-38. Custom Fields
-39. Save Custom Fields
-40. Attachments + Add
-41. Métadonnées (Name/Size/Type/Date)
-42. Edit Attachment
-43. Delete Attachment
-
-=== PERFORMANCE (44-50) ===
-44. Filtres Employee/Job/Sub Unit/Status/Date
-45. Include Current Only
-46. Review Period/Due Date/Status
-47. Configure
-48. Manage Reviews
-49. My Trackers
-50. Employee Trackers
-
-=== DIRECTORY (51-54) ===
-51. Recherche Name/Title/Location
-52. Cartes visuels
-53. Records Found
-
-=== CLAIM (55-63) ===
-55. Filtres Employee/Reference/Event/Status/Date
-56. Multi-devises
-57. Statut Initiated/Submitted
-58. Assign Claim
-59. Submit Claim
-60. My Claims
-61. Employee Claims
-62. View Details
-
-=== BUZZ (64-70) ===
-64. What's on your mind?
-65. Post
-66. Share Photos
-67. Share Video
-68. Like/Comment/Share
-69. Tri Most Recent/Liked
-70. Upcoming Anniversaries
+CONSEILS POUR IDENTIFIER LES RÔLES:
+- Lis attentivement les exigences
+- Identifie tous les rôles mentionnés: administrateur, utilisateur, employé, visiteur, gestionnaire, etc.
+- Chaque fonctionnalité est liée à un rôle spécifique
+- Par exemple:
+  * "L'administrateur peut ajouter/modifier/supprimer des employés" → rôle: administrateur
+  * "L'employé peut consulter ses informations" → rôle: employé
+  * "L'utilisateur peut se connecter" → rôle: utilisateur
 
 ---
-CRITÈRES OBLIGATOIRES pour chaque story:
-- [ ] Utilise les critères du FICHIER d'exigences
-- [ ] Pas de "Critère à définir"
-- [ ] 70 user stories MINIMUM
+Génère exactement AU FORMAT REQUIRED ci-dessus. Commence par "---".
+Nombre de user stories: Minimum 5, Maximum 15 (selon complexité et nombre de rôles)
+Assure-toi d'inclure des user stories pour DIFFÉRENTS rôles identifiés dans les exigences.
 ---
 """
     

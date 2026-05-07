@@ -11,288 +11,285 @@ depends_on: []
 ## User story
 
 **En tant que** utilisateur
-**Je veux** me connecter à l'application
-**Afin de** accéder à mes données personnelles et aux fonctionnalités de l'application
+**Je veux** m'authentifier via un champ Username et un champ Password
+**Afin de** accéder au système
 
 ## Critères d'acceptation
 
-- L'utilisateur peut saisir son nom d'utilisateur et son mot de passe
-- L'application valide les identifiants et bloque l'accès en cas d'erreur
-- L'application redirige vers le Dashboard en cas de succès
-- L'application différencie les rôles systèmes et restreint l'accès aux modules selon le profil connecté
+- [ ] Le système valide les identifiants
+- [ ] Le système bloque l'accès en cas d'erreur
+- [ ] Le système redirige vers le Dashboard en cas de succès
 
 ## Notes techniques
 
-L'application utilisera un système de gestion d'identité pour valider les identifiants et gérer les sessions.
+Le système doit utiliser un protocole de sécurité pour protéger les identifiants.
 
 ## Definition of Done
 
-La fonctionnalité d'authentification est implémentée et testée avec succès.
+Le système doit permettre à l'utilisateur de s'authentifier via un champ Username et un champ Password.
 
 ---
 
 id: STORY-002
+title: Gestion de session
+status: todo
+priority: high
+scope: backend
+estimate: M
+depends_on: [STORY-001]
+
+## User story
+
+**En tant que** utilisateur
+**Je veux** que le système gère la session
+**Afin de** m'identifier comme utilisateur connecté
+
+## Critères d'acceptation
+
+- [ ] Le système différencie les rôles systèmes (ex: Admin, ESS)
+- [ ] Le système restreint l'accès aux modules selon le profil connecté
+- [ ] Le système permet à l'utilisateur de modifier son mot de passe ou de se déconnecter
+
+## Notes techniques
+
+Le système doit utiliser une session pour stocker les informations de l'utilisateur connecté.
+
+## Definition of Done
+
+Le système doit gérer la session de l'utilisateur connecté.
+
+---
+
+id: STORY-003
+title: Tableau de bord
+status: todo
+priority: medium
+scope: frontend
+estimate: L
+depends_on: [STORY-002]
+
+## User story
+
+**En tant que** utilisateur
+**Je veux** afficher un tableau de bord
+**Afin de** visualiser mes informations
+
+## Critères d'acceptation
+
+- [ ] Le système affiche un widget Time at Work
+- [ ] Le système affiche un widget My Actions
+- [ ] Le système propose un raccourci Quick Launch
+
+## Notes techniques
+
+Le système doit utiliser un framework de visualisation pour afficher les widgets.
+
+## Definition of Done
+
+Le système doit afficher un tableau de bord avec les widgets requis.
+
+---
+
+id: STORY-004
+title: Recherche d'utilisateurs
+status: todo
+priority: medium
+scope: backend
+estimate: M
+depends_on: [STORY-002]
+
+## User story
+
+**En tant que** administrateur
+**Je veux** rechercher des utilisateurs
+**Afin de** gérer les comptes
+
+## Critères d'acceptation
+
+- [ ] Le système permet de rechercher des utilisateurs par Username, User Role, Employee Name ou Status
+- [ ] Le système affiche les résultats sous forme de tableau paginé
+- [ ] Le système permet de trier les résultats
+
+## Notes techniques
+
+Le système doit utiliser une base de données pour stocker les informations des utilisateurs.
+
+## Definition of Done
+
+Le système doit permettre de rechercher des utilisateurs.
+
+---
+
+id: STORY-005
+title: Gestion des utilisateurs
+status: todo
+priority: high
+scope: backend
+estimate: L
+depends_on: [STORY-004]
+
+## User story
+
+**En tant que** administrateur
+**Je veux** gérer les utilisateurs
+**Afin de** gérer les comptes
+
+## Critères d'acceptation
+
+- [ ] Le système permet d'ajouter un nouvel utilisateur
+- [ ] Le système permet de modifier ou supprimer un utilisateur existant
+- [ ] Le système gère le statut des comptes (Enabled/Disabled)
+
+## Notes techniques
+
+Le système doit utiliser une base de données pour stocker les informations des utilisateurs.
+
+## Definition of Done
+
+Le système doit permettre de gérer les utilisateurs.
+
+---
+
+id: STORY-006
+title: Gestion des employés
+status: todo
+priority: medium
+scope: backend
+estimate: M
+depends_on: [STORY-002]
+
+## User story
+
+**En tant que** administrateur
+**Je veux** gérer les employés
+**Afin de** gérer les données employés
+
+## Critères d'acceptation
+
+- [ ] Le système permet de rechercher un employé par Employee Name, Employee Id, Employment Status, Supervisor Name, Job Title ou Sub Unit
+- [ ] Le système propose un filtre Include: Current Employees Only
+- [ ] Le système permet d'ajouter un nouvel employé
+
+## Notes techniques
+
+Le système doit utiliser une base de données pour stocker les informations des employés.
+
+## Definition of Done
+
+Le système doit permettre de gérer les employés.
+
+---
+
+id: STORY-007
+title: Navigation & Structure globale
+status: todo
+priority: low
+scope: frontend
+estimate: S
+depends_on: [STORY-003]
+
+## User story
+
+**En tant que** utilisateur
+**Je veux** naviguer dans le système
+**Afin de** accéder aux fonctionnalités
+
+## Critères d'acceptation
+
+- [ ] Le système propose un menu latéral fixe
+- [ ] Le système regroupe les modules dans des catégories
+
+## Notes techniques
+
+Le système doit utiliser un framework de navigation pour afficher le menu.
+
+## Definition of Done
+
+Le système doit proposer un menu latéral fixe.
+
+---
+
+id: STORY-008
 title: Réinitialisation de mot de passe
 status: todo
 priority: medium
 scope: backend
-estimate: S
+estimate: M
 depends_on: [STORY-001]
 
 ## User story
 
 **En tant que** utilisateur
 **Je veux** réinitialiser mon mot de passe
-**Afin de** accéder à nouveau à l'application
+**Afin de** accéder au système
 
 ## Critères d'acceptation
 
-- L'utilisateur peut cliquer sur le lien "Forgot your password?" pour initier la procédure de réinitialisation
-- L'application envoie un email de réinitialisation avec un lien de réinitialisation
-- L'utilisateur peut saisir un nouveau mot de passe et valider la réinitialisation
+- [ ] Le système propose un lien Forgot your password?
+- [ ] Le système permet de réinitialiser le mot de passe
 
 ## Notes techniques
 
-L'application utilisera un système de gestion d'emails pour envoyer les emails de réinitialisation.
+Le système doit utiliser un protocole de sécurité pour protéger les identifiants.
 
 ## Definition of Done
 
-La fonctionnalité de réinitialisation de mot de passe est implémentée et testée avec succès.
-
----
-
-id: STORY-003
-title: Gestion des utilisateurs
-status: todo
-priority: high
-scope: backend
-estimate: L
-depends_on: [STORY-001]
-
-## User story
-
-**En tant que** administrateur
-**Je veux** gérer les utilisateurs de l'application
-**Afin de** accéder à leurs données personnelles et gérer leurs droits d'accès
-
-## Critères d'acceptation
-
-- L'administrateur peut rechercher des utilisateurs par nom d'utilisateur, rôle, nom d'employé ou statut
-- L'application affiche les résultats sous forme de tableau paginé avec options de tri croissant/décroissant par colonne
-- L'administrateur peut ajouter un nouvel utilisateur via le bouton vert + Add
-- L'administrateur peut modifier ou supprimer un utilisateur existant via les icônes ✏️ (édition) et 🗑️ (suppression)
-
-## Notes techniques
-
-L'application utilisera un système de gestion de base de données pour stocker les données des utilisateurs.
-
-## Definition of Done
-
-La fonctionnalité de gestion des utilisateurs est implémentée et testée avec succès.
-
----
-
-id: STORY-004
-title: Tableau de bord
-status: todo
-priority: high
-scope: frontend
-estimate: XL
-depends_on: [STORY-001]
-
-## User story
-
-**En tant que** utilisateur
-**Je veux** accéder au tableau de bord de l'application
-**Afin de** visualiser mes données personnelles et les fonctionnalités de l'application
-
-## Critères d'acceptation
-
-- Le tableau de bord affiche un widget Time at Work indiquant le statut actuel (Punched In/Out), l'heure de pointage et un graphique hebdomadaire des heures travaillées
-- Le tableau de bord affiche un widget My Actions listant les tâches en attente nécessitant une action utilisateur
-- Le tableau de bord propose un raccourci Quick Launch pour accéder rapidement aux fonctionnalités les plus utilisées
-- Le tableau de bord affiche un flux Buzz Latest Posts regroupant les publications ou annonces récentes
-
-## Notes techniques
-
-L'application utilisera un framework de développement web pour implémenter la fonctionnalité du tableau de bord.
-
-## Definition of Done
-
-La fonctionnalité du tableau de bord est implémentée et testée avec succès.
-
----
-
-id: STORY-005
-title: Gestion des employés
-status: todo
-priority: high
-scope: backend
-estimate: L
-depends_on: [STORY-001]
-
-## User story
-
-**En tant que** administrateur
-**Je veux** gérer les employés de l'application
-**Afin de** accéder à leurs données personnelles et gérer leurs droits d'accès
-
-## Critères d'acceptation
-
-- L'administrateur peut rechercher un employé par nom d'employé, ID d'employé, statut d'emploi, nom de superviseur, titre de poste ou sous-unité
-- L'application propose un filtre Include: Current Employees Only pour restreindre la liste aux employés actifs
-- L'application affiche les résultats sous forme de liste/tableau avec pagination et tri
-- L'administrateur peut ajouter un nouvel employé via le bouton + Add
-
-## Notes techniques
-
-L'application utilisera un système de gestion de base de données pour stocker les données des employés.
-
-## Definition of Done
-
-La fonctionnalité de gestion des employés est implémentée et testée avec succès.
-
----
-
-id: STORY-006
-title: Menu latéral
-status: todo
-priority: medium
-scope: frontend
-estimate: M
-depends_on: [STORY-001]
-
-## User story
-
-**En tant que** utilisateur
-**Je veux** accéder au menu latéral de l'application
-**Afin de** naviguer facilement dans les fonctionnalités de l'application
-
-## Critères d'acceptation
-
-- Le menu latéral est fixe et regroupe les modules : Admin, PIM, Leave, Time, Recruitment, My Info, Performance, Directory, Maintenance, Claim, Dashboard
-- Le menu latéral est accessible via un bouton fléché ‹
-
-## Notes techniques
-
-L'application utilisera un framework de développement web pour implémenter la fonctionnalité du menu latéral.
-
-## Definition of Done
-
-La fonctionnalité du menu latéral est implémentée et testée avec succès.
-
----
-
-id: STORY-007
-title: Gestion des rôles
-status: todo
-priority: high
-scope: backend
-estimate: L
-depends_on: [STORY-001]
-
-## User story
-
-**En tant que** administrateur
-**Je veux** gérer les rôles de l'application
-**Afin de** accéder à leurs données personnelles et gérer leurs droits d'accès
-
-## Critères d'acceptation
-
-- L'administrateur peut créer, modifier ou supprimer des rôles
-- L'application affecte les rôles aux utilisateurs en fonction de leurs droits d'accès
-
-## Notes techniques
-
-L'application utilisera un système de gestion de base de données pour stocker les données des rôles.
-
-## Definition of Done
-
-La fonctionnalité de gestion des rôles est implémentée et testée avec succès.
-
----
-
-id: STORY-008
-title: Gestion des permissions
-status: todo
-priority: high
-scope: backend
-estimate: L
-depends_on: [STORY-001]
-
-## User story
-
-**En tant que** administrateur
-**Je veux** gérer les permissions de l'application
-**Afin de** accéder à leurs données personnelles et gérer leurs droits d'accès
-
-## Critères d'acceptation
-
-- L'administrateur peut créer, modifier ou supprimer des permissions
-- L'application affecte les permissions aux utilisateurs en fonction de leurs droits d'accès
-
-## Notes techniques
-
-L'application utilisera un système de gestion de base de données pour stocker les données des permissions.
-
-## Definition of Done
-
-La fonctionnalité de gestion des permissions est implémentée et testée avec succès.
+Le système doit permettre de réinitialiser le mot de passe.
 
 ---
 
 id: STORY-009
-title: Gestion des rapports
+title: Génération de rapports
 status: todo
-priority: medium
+priority: low
 scope: backend
-estimate: M
-depends_on: [STORY-001]
+estimate: S
+depends_on: [STORY-006]
 
 ## User story
 
 **En tant que** administrateur
-**Je veux** générer des rapports sur les données de l'application
-**Afin de** obtenir des informations précises sur les données de l'application
+**Je veux** générer des rapports
+**Afin de** analyser les données employés
 
 ## Critères d'acceptation
 
-- L'administrateur peut générer des rapports sur les données de l'application
-- Les rapports sont accessibles via un onglet Reports
+- [ ] Le système permet de générer des rapports sur les données employés
+- [ ] Le système propose des options de filtre pour les rapports
 
 ## Notes techniques
 
-L'application utilisera un système de gestion de base de données pour stocker les données des rapports.
+Le système doit utiliser une bibliothèque de génération de rapports pour créer les rapports.
 
 ## Definition of Done
 
-La fonctionnalité de gestion des rapports est implémentée et testée avec succès.
+Le système doit permettre de générer des rapports.
 
 ---
 
 id: STORY-010
-title: Gestion des notifications
+title: Configuration de PIM
 status: todo
 priority: medium
 scope: backend
 estimate: M
-depends_on: [STORY-001]
+depends_on: [STORY-006]
 
 ## User story
 
-**En tant que** utilisateur
-**Je veux** recevoir des notifications sur les événements de l'application
-**Afin de** être informé des changements dans l'application
+**En tant que** administrateur
+**Je veux** configurer PIM
+**Afin de** personnaliser les champs affichés ou les règles de validation PIM
 
 ## Critères d'acceptation
 
-- L'utilisateur peut recevoir des notifications sur les événements de l'application
-- Les notifications sont accessibles via un onglet Notifications
+- [ ] Le système propose un onglet Configuration pour PIM
+- [ ] Le système permet de personnaliser les champs affichés ou les règles de validation PIM
 
 ## Notes techniques
 
-L'application utilisera un système de gestion de base de données pour stocker les données des notifications.
+Le système doit utiliser une base de données pour stocker les informations de configuration.
 
 ## Definition of Done
 
-La fonctionnalité de gestion des notifications est implémentée et testée avec succès.
+Le système doit permettre de configurer PIM.

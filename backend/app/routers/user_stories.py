@@ -72,10 +72,10 @@ async def generate_user_stories_from_path(body: dict):
                 content={"error": "Aucun fichier source trouvé dans ce chemin"}
             )
         
-        max_content_size = 15000
+        max_content_size = 50000
         if len(content) > max_content_size:
             content = content[:max_content_size]
-            content += f"\n\n... (et {len(files_read) - 10} autres fichiers analysés mais tronqués pour la limite de tokens)"
+            content += f"\n\n... (et d'autres fichiers analysés mais tronqués pour la limite de tokens)"
         
         print(f"📄 User Stories - Content size: {len(content)} chars, {len(files_read)} files")
         
@@ -327,7 +327,7 @@ def _parse_user_stories(ai_output: str, detected_features: list = None) -> list:
                         "technical_notes": "",
                         "definition_of_done": ""
                     })
-                elif story_number > 0 and story_number <= 15:
+                elif story_number > 0:
                     if user_stories:
                         last = user_stories[-1]
                         if not last.get('role'):
@@ -345,29 +345,7 @@ def _parse_user_stories(ai_output: str, detected_features: list = None) -> list:
                     feature_counts[uf] = feature_counts.get(uf, 0) + 1
                     break
         
-        max_stories = min(15, len(unique_features) + 3)
-        if len(user_stories) > max_stories:
-            kept_stories = []
-            used_feature_types = set()
-            for story in user_stories:
-                feature = story.get('feature', '').lower()
-                story_key = None
-                for uf in unique_features:
-                    if uf.lower() in feature or feature in uf.lower():
-                        story_key = uf
-                        break
-                
-                if story_key and story_key in used_feature_types:
-                    continue
-                
-                kept_stories.append(story)
-                if story_key:
-                    used_feature_types.add(story_key)
-                
-                if len(kept_stories) >= max_stories:
-                    break
-            
-            user_stories = kept_stories
+        pass  # Removing the artificial max_stories trimming
     
     used_features = []
     
@@ -536,7 +514,7 @@ def _parse_user_stories(ai_output: str, detected_features: list = None) -> list:
             elif feature and feature not in ['accomplir une tâche', '']:
                 clean_stories.append(story)
         
-        needed = min(15, max(len(unique_detected), len(clean_stories)))
+        needed = max(len(unique_detected), len(clean_stories))
         while len(clean_stories) < needed:
             for detected in unique_detected:
                 if detected not in seen_features and detected in feature_keywords_map:
@@ -559,7 +537,7 @@ def _parse_user_stories(ai_output: str, detected_features: list = None) -> list:
                     seen_features.add(detected)
                     break
         
-        user_stories = clean_stories[:15]
+        user_stories = clean_stories
         
         feature_content_seen = set()
         final_stories = []
@@ -569,7 +547,7 @@ def _parse_user_stories(ai_output: str, detected_features: list = None) -> list:
                 feature_content_seen.add(feat)
                 final_stories.append(story)
         
-        user_stories = final_stories[:15]
+        user_stories = final_stories
         
         for i, story in enumerate(user_stories):
             story['story_number'] = i + 1
@@ -600,7 +578,7 @@ def _fallback_user_stories_response(analysis, error_message: str):
         'Pagination': ('utilisateur', 'paginer les résultats', 'parcourir de grandes quantités de données'),
     }
     
-    for feature in analysis.detected_features[:10]:
+    for feature in analysis.detected_features:
         if feature in feature_to_role:
             role, want, benefit = feature_to_role[feature]
             story_num += 1
@@ -622,7 +600,7 @@ def _fallback_user_stories_response(analysis, error_message: str):
             })
     
     if not user_stories:
-        for feature in analysis.detected_features[:5]:
+        for feature in analysis.detected_features:
             story_num += 1
             feature_clean = feature.split('/')[0].strip()
             user_stories.append({

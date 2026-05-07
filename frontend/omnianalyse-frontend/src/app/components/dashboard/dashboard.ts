@@ -182,7 +182,7 @@ function translateKeyword(keyword: string): string {
           @if (loading()) {
             <div class="loading">
               <div class="spinner"></div>
-              <span>Génération des tests en cours...</span>
+              <span>Génération des user stories en cours...</span>
             </div>
           }
           
