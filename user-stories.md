@@ -1,8 +1,6 @@
 ---
 
-### Authentification & Gestion de session
-
-#### STORY-001
+id: STORY-001
 title: Authentification
 status: todo
 priority: high
@@ -10,207 +8,291 @@ scope: backend
 estimate: M
 depends_on: []
 
-**En tant que** utilisateur
-**Je veux** m'authentifier via un champ Username et un champ Password
-**Afin de** accéder au système
-
-Critères d'acceptation
-- [ ] Le système valide les identifiants
-- [ ] Le système bloque l'accès en cas d'erreur
-- [ ] Le système redirige vers le Dashboard en cas de succès
-
-#### STORY-002
-title: Gestion de session
-status: todo
-priority: high
-scope: backend
-estimate: M
-depends_on: [STORY-001]
+## User story
 
 **En tant que** utilisateur
-**Je veux** modifier mon mot de passe ou me déconnecter
-**Afin de** sécuriser mon compte
+**Je veux** me connecter à l'application
+**Afin de** accéder à mes données personnelles et aux fonctionnalités de l'application
 
-Critères d'acceptation
-- [ ] Le système permet de modifier le mot de passe
-- [ ] Le système permet de se déconnecter
-- [ ] Le système supprime la session utilisateur
+## Critères d'acceptation
 
-#### STORY-003
-title: Authentification avancée
-status: todo
-priority: medium
-scope: backend
-estimate: L
-depends_on: [STORY-001]
+- L'utilisateur peut saisir son nom d'utilisateur et son mot de passe
+- L'application valide les identifiants et bloque l'accès en cas d'erreur
+- L'application redirige vers le Dashboard en cas de succès
+- L'application différencie les rôles systèmes et restreint l'accès aux modules selon le profil connecté
 
-**En tant que** administrateur
-**Je veux** différencier les rôles systèmes et restreindre l'accès aux modules
-**Afin de** sécuriser l'accès au système
+## Notes techniques
 
-Critères d'acceptation
-- [ ] Le système différencie les rôles systèmes
-- [ ] Le système restreint l'accès aux modules selon le profil connecté
+L'application utilisera un système de gestion d'identité pour valider les identifiants et gérer les sessions.
+
+## Definition of Done
+
+La fonctionnalité d'authentification est implémentée et testée avec succès.
 
 ---
 
-### Tableau de bord (Dashboard)
-
-#### STORY-004
-title: Affichage du widget Time at Work
-status: todo
-priority: high
-scope: frontend
-estimate: S
-depends_on: []
-
-**En tant que** utilisateur
-**Je veux** afficher le statut actuel, l'heure de pointage et un graphique hebdomadaire des heures travaillées
-**Afin de** suivre mes heures de travail
-
-Critères d'acceptation
-- [ ] Le système affiche le statut actuel
-- [ ] Le système affiche l'heure de pointage
-- [ ] Le système affiche un graphique hebdomadaire des heures travaillées
-
-#### STORY-005
-title: Affichage du widget My Actions
-status: todo
-priority: high
-scope: frontend
-estimate: S
-depends_on: []
-
-**En tant que** utilisateur
-**Je veux** afficher les tâches en attente nécessitant une action utilisateur
-**Afin de** suivre mes tâches
-
-Critères d'acceptation
-- [ ] Le système affiche les tâches en attente
-- [ ] Le système affiche les détails des tâches
-
-#### STORY-006
-title: Affichage du widget Quick Launch
+id: STORY-002
+title: Réinitialisation de mot de passe
 status: todo
 priority: medium
-scope: frontend
-estimate: XS
-depends_on: []
+scope: backend
+estimate: S
+depends_on: [STORY-001]
+
+## User story
 
 **En tant que** utilisateur
-**Je veux** accéder rapidement aux fonctionnalités les plus utilisées
-**Afin de** simplifier mon accès
+**Je veux** réinitialiser mon mot de passe
+**Afin de** accéder à nouveau à l'application
 
-Critères d'acceptation
-- [ ] Le système propose un raccourci Quick Launch
-- [ ] Le système redirige vers la fonctionnalité sélectionnée
+## Critères d'acceptation
+
+- L'utilisateur peut cliquer sur le lien "Forgot your password?" pour initier la procédure de réinitialisation
+- L'application envoie un email de réinitialisation avec un lien de réinitialisation
+- L'utilisateur peut saisir un nouveau mot de passe et valider la réinitialisation
+
+## Notes techniques
+
+L'application utilisera un système de gestion d'emails pour envoyer les emails de réinitialisation.
+
+## Definition of Done
+
+La fonctionnalité de réinitialisation de mot de passe est implémentée et testée avec succès.
 
 ---
 
-### Administration → Gestion des utilisateurs
-
-#### STORY-007
-title: Recherche d'utilisateurs
-status: todo
-priority: high
-scope: backend
-estimate: M
-depends_on: []
-
-**En tant que** administrateur
-**Je veux** rechercher des utilisateurs système par Username, User Role, Employee Name ou Status
-**Afin de** trouver rapidement les informations nécessaires
-
-Critères d'acceptation
-- [ ] Le système permet de rechercher des utilisateurs
-- [ ] Le système affiche les résultats sous forme de tableau paginé
-
-#### STORY-008
+id: STORY-003
 title: Gestion des utilisateurs
 status: todo
 priority: high
 scope: backend
-estimate: M
-depends_on: [STORY-007]
-
-**En tant que** administrateur
-**Je veux** ajouter, modifier ou supprimer un utilisateur existant
-**Afin de** gérer les utilisateurs
-
-Critères d'acceptation
-- [ ] Le système permet d'ajouter un nouvel utilisateur
-- [ ] Le système permet de modifier un utilisateur existant
-- [ ] Le système permet de supprimer un utilisateur existant
-
-#### STORY-009
-title: Gestion des comptes
-status: todo
-priority: medium
-scope: backend
 estimate: L
-depends_on: [STORY-008]
+depends_on: [STORY-001]
+
+## User story
 
 **En tant que** administrateur
-**Je veux** gérer le statut des comptes (Enabled/Disabled) et empêcher la connexion des comptes désactivés
-**Afin de** sécuriser l'accès au système
+**Je veux** gérer les utilisateurs de l'application
+**Afin de** accéder à leurs données personnelles et gérer leurs droits d'accès
 
-Critères d'acceptation
-- [ ] Le système gère le statut des comptes
-- [ ] Le système empêche la connexion des comptes désactivés
+## Critères d'acceptation
+
+- L'administrateur peut rechercher des utilisateurs par nom d'utilisateur, rôle, nom d'employé ou statut
+- L'application affiche les résultats sous forme de tableau paginé avec options de tri croissant/décroissant par colonne
+- L'administrateur peut ajouter un nouvel utilisateur via le bouton vert + Add
+- L'administrateur peut modifier ou supprimer un utilisateur existant via les icônes ✏️ (édition) et 🗑️ (suppression)
+
+## Notes techniques
+
+L'application utilisera un système de gestion de base de données pour stocker les données des utilisateurs.
+
+## Definition of Done
+
+La fonctionnalité de gestion des utilisateurs est implémentée et testée avec succès.
 
 ---
 
-### PIM (Personal Information Management) → Gestion des employés
-
-#### STORY-010
-title: Recherche d'employés
+id: STORY-004
+title: Tableau de bord
 status: todo
 priority: high
-scope: backend
-estimate: M
-depends_on: []
+scope: frontend
+estimate: XL
+depends_on: [STORY-001]
 
-**En tant que** administrateur
-**Je veux** rechercher un employé par Employee Name, Employee Id, Employment Status, Supervisor Name, Job Title ou Sub Unit
-**Afin de** trouver rapidement les informations nécessaires
+## User story
 
-Critères d'acceptation
-- [ ] Le système permet de rechercher des employés
-- [ ] Le système affiche les résultats sous forme de liste/tableau
+**En tant que** utilisateur
+**Je veux** accéder au tableau de bord de l'application
+**Afin de** visualiser mes données personnelles et les fonctionnalités de l'application
 
-#### STORY-011
+## Critères d'acceptation
+
+- Le tableau de bord affiche un widget Time at Work indiquant le statut actuel (Punched In/Out), l'heure de pointage et un graphique hebdomadaire des heures travaillées
+- Le tableau de bord affiche un widget My Actions listant les tâches en attente nécessitant une action utilisateur
+- Le tableau de bord propose un raccourci Quick Launch pour accéder rapidement aux fonctionnalités les plus utilisées
+- Le tableau de bord affiche un flux Buzz Latest Posts regroupant les publications ou annonces récentes
+
+## Notes techniques
+
+L'application utilisera un framework de développement web pour implémenter la fonctionnalité du tableau de bord.
+
+## Definition of Done
+
+La fonctionnalité du tableau de bord est implémentée et testée avec succès.
+
+---
+
+id: STORY-005
 title: Gestion des employés
 status: todo
 priority: high
 scope: backend
-estimate: M
-depends_on: [STORY-010]
+estimate: L
+depends_on: [STORY-001]
+
+## User story
 
 **En tant que** administrateur
-**Je veux** ajouter, modifier ou supprimer un employé existant
-**Afin de** gérer les employés
+**Je veux** gérer les employés de l'application
+**Afin de** accéder à leurs données personnelles et gérer leurs droits d'accès
 
-Critères d'acceptation
-- [ ] Le système permet d'ajouter un nouvel employé
-- [ ] Le système permet de modifier un employé existant
-- [ ] Le système permet de supprimer un employé existant
+## Critères d'acceptation
+
+- L'administrateur peut rechercher un employé par nom d'employé, ID d'employé, statut d'emploi, nom de superviseur, titre de poste ou sous-unité
+- L'application propose un filtre Include: Current Employees Only pour restreindre la liste aux employés actifs
+- L'application affiche les résultats sous forme de liste/tableau avec pagination et tri
+- L'administrateur peut ajouter un nouvel employé via le bouton + Add
+
+## Notes techniques
+
+L'application utilisera un système de gestion de base de données pour stocker les données des employés.
+
+## Definition of Done
+
+La fonctionnalité de gestion des employés est implémentée et testée avec succès.
 
 ---
 
-### Navigation & Structure globale
-
-#### STORY-012
-title: Affichage du menu latéral
+id: STORY-006
+title: Menu latéral
 status: todo
-priority: high
+priority: medium
 scope: frontend
-estimate: S
-depends_on: []
+estimate: M
+depends_on: [STORY-001]
+
+## User story
 
 **En tant que** utilisateur
-**Je veux** afficher un menu latéral fixe regroupant les modules
-**Afin de** naviguer facilement
+**Je veux** accéder au menu latéral de l'application
+**Afin de** naviguer facilement dans les fonctionnalités de l'application
 
-Critères d'acceptation
-- [ ] Le système affiche le menu latéral
-- [ ] Le système regroupe les modules correctement
+## Critères d'acceptation
+
+- Le menu latéral est fixe et regroupe les modules : Admin, PIM, Leave, Time, Recruitment, My Info, Performance, Directory, Maintenance, Claim, Dashboard
+- Le menu latéral est accessible via un bouton fléché ‹
+
+## Notes techniques
+
+L'application utilisera un framework de développement web pour implémenter la fonctionnalité du menu latéral.
+
+## Definition of Done
+
+La fonctionnalité du menu latéral est implémentée et testée avec succès.
+
+---
+
+id: STORY-007
+title: Gestion des rôles
+status: todo
+priority: high
+scope: backend
+estimate: L
+depends_on: [STORY-001]
+
+## User story
+
+**En tant que** administrateur
+**Je veux** gérer les rôles de l'application
+**Afin de** accéder à leurs données personnelles et gérer leurs droits d'accès
+
+## Critères d'acceptation
+
+- L'administrateur peut créer, modifier ou supprimer des rôles
+- L'application affecte les rôles aux utilisateurs en fonction de leurs droits d'accès
+
+## Notes techniques
+
+L'application utilisera un système de gestion de base de données pour stocker les données des rôles.
+
+## Definition of Done
+
+La fonctionnalité de gestion des rôles est implémentée et testée avec succès.
+
+---
+
+id: STORY-008
+title: Gestion des permissions
+status: todo
+priority: high
+scope: backend
+estimate: L
+depends_on: [STORY-001]
+
+## User story
+
+**En tant que** administrateur
+**Je veux** gérer les permissions de l'application
+**Afin de** accéder à leurs données personnelles et gérer leurs droits d'accès
+
+## Critères d'acceptation
+
+- L'administrateur peut créer, modifier ou supprimer des permissions
+- L'application affecte les permissions aux utilisateurs en fonction de leurs droits d'accès
+
+## Notes techniques
+
+L'application utilisera un système de gestion de base de données pour stocker les données des permissions.
+
+## Definition of Done
+
+La fonctionnalité de gestion des permissions est implémentée et testée avec succès.
+
+---
+
+id: STORY-009
+title: Gestion des rapports
+status: todo
+priority: medium
+scope: backend
+estimate: M
+depends_on: [STORY-001]
+
+## User story
+
+**En tant que** administrateur
+**Je veux** générer des rapports sur les données de l'application
+**Afin de** obtenir des informations précises sur les données de l'application
+
+## Critères d'acceptation
+
+- L'administrateur peut générer des rapports sur les données de l'application
+- Les rapports sont accessibles via un onglet Reports
+
+## Notes techniques
+
+L'application utilisera un système de gestion de base de données pour stocker les données des rapports.
+
+## Definition of Done
+
+La fonctionnalité de gestion des rapports est implémentée et testée avec succès.
+
+---
+
+id: STORY-010
+title: Gestion des notifications
+status: todo
+priority: medium
+scope: backend
+estimate: M
+depends_on: [STORY-001]
+
+## User story
+
+**En tant que** utilisateur
+**Je veux** recevoir des notifications sur les événements de l'application
+**Afin de** être informé des changements dans l'application
+
+## Critères d'acceptation
+
+- L'utilisateur peut recevoir des notifications sur les événements de l'application
+- Les notifications sont accessibles via un onglet Notifications
+
+## Notes techniques
+
+L'application utilisera un système de gestion de base de données pour stocker les données des notifications.
+
+## Definition of Done
+
+La fonctionnalité de gestion des notifications est implémentée et testée avec succès.

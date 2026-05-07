@@ -333,28 +333,26 @@ Critères: [ ] Le formulaire de connexion s'affiche, [ ] Les identifiants sont v
     return prompt
 
 
-SYSTEM_PROMPT_REQUIREMENTS = """Tu es un expert en gestion de projet agile qui génère des user stories à partir d'exigences fonctionnelles.
+SYSTEM_PROMPT_REQUIREMENTS = """Tu es un expert en gestion de projet agile. Génère DES user stories COMPLÈTES avec VRAIS critères.
 
-RÈGLES OBLIGATOIRES - Format REQUIRED pour chaque user story:
+Format STRICT:
 ---
 id: STORY-XXX
 title: [titre]
-**En tant que** [rôle]
+**En tant que** [rôle précis]
 **Je veux** [fonctionnalité]
 **Afin de** [bénéfice]
-Critères: [ ] 1, [ ] 2, [ ] 3
+Critères: [ ] critère réel 1, [ ] critère réel 2, [ ] critère réel 3
 ---
 
-RÈGLES CRITIQUES:
-1. TOUS LES MODULES (12): Auth, Dashboard, Admin, PIM, Navigation, Time, Recruitment, My Info, Performance, Directory, Claim, Buzz
-2. Chaque fonctionnalité ci-dessous = 1 user story
-3. Rôles: Admin (gestion), Employé (consult/modif), Candidat (candidature), Manager (evaluation)
-4. Minimum: 20 user stories"""
+RÈGLES:
+1. 70 fonctionnalités = 70 user stories MINIMUM
+2. Chaque critère doit être-SPÉCIFIQUE (pas "Critère à définir")
+3. Utilise les critères DU FICHIER d'exigences
+4. 12 modules à couvrir ABSOLUMENT"""
 
 async def generate_user_stories_from_requirements(requirements: str) -> str:
-    """
-    Generate user stories from text requirements using AI.
-    """
+    """Generate user stories from text requirements."""
     prompt = _build_requirements_prompt(requirements)
     
     chat_completion = await client.chat.completions.create(
@@ -369,120 +367,118 @@ async def generate_user_stories_from_requirements(requirements: str) -> str:
             }
         ],
         model="llama-3.1-70b-versatile",
-        temperature=0.4,
-        max_tokens=8000
+        temperature=0.3,
+        max_tokens=10000
     )
     
     return chat_completion.choices[0].message.content
 
 
 def _build_requirements_prompt(requirements: str) -> str:
-    """Build prompt for user stories from requirements."""
+    """Build prompt - force TOUTES les 70 fonctionnalités."""
     
-    prompt = f"""Fichier d'exigences COMPLET - génère MINIMUM 20 user stories pour TOUTES les fonctionnalités:
-
-```
-{requirements}
-```
+    prompt = f"""Fichier exigence: {requirements}
 
 ---
-LISTE EXHAUSTIVE DES FONCTIONNALITÉS PAR MODULE (1 user story chacune MINIMUM):
+OBLIGATOIRE: 70 fonctionnalités = 70 user stories AVEC CRITÈRES RÉELS
 
 === AUTH (1-4) ===
-- Connexion username/password
-- Lien forgot password + réinitialisation
-- Différenciation rôles Admin/ESS
-- Modification mot de passe via menu profil
+1. Connexion username/password
+2. Lien forgot password + réinitialisation email
+3. Rôles Admin/ESS + restriction modules
+4. Modifier mot deasse via menu profil
 
 === DASHBOARD (5-8) ===
-- Widget Time at Work (Punched In/Out, heures travaillées)
-- Widget My Actions (tâches en attente)
-- Raccourci Quick Launch
-- Widget Buzz Latest Posts
+5. Widget Time at Work (Punched In/Out)
+6. Widget My Actions (tâches attente)
+7. Quick Launch
+8. Buzz Latest Posts
 
 === ADMIN USERS (9-13) ===
-- Recherche par Username/User Role/Employee Name/Status
-- Tableau paginé avec tri par colonne
-- Ajout nouvel utilisateur (+ Add)
-- Édition/suppression utilisateur (✏️/🗑️)
-- Reset filtres, statut Enabled/Disabled
+9. Recherche Username/User Role/Employee Name/Status
+10. Tableau paginé + tri colonne
+11. + Add utilisateur
+12. ✏️ Edit / 🗑️ Delete
+13. Reset filtres, Enabled/Disabled
 
 === PIM (14-17) ===
-- Recherche employé par Employee Name/Id/Status/Supervisor/Job Title/Sub Unit
-- Filtre Current Employees Only
-- Bouton Configuration (champs personnalisés)
-- Onglet Reports (rapports employés)
+14. Recherche Employee Name/Id/Status/Supervisor/Job/Sub Unit
+15. Filtre Current Employees Only
+16. Configuration champs
+17. Reports employés
 
 === NAVIGATION (18-21) ===
-- Menu latéral Admin/PIM/Leave/Time/Recruitment/My Info/Performance/Directory/Maintenance/Claim
-- Barre recherche globale
-- Masquer menu (bouton ‹)
-- Bouton Upgrade (version premium)
+18. Menu latéral (Admin/PIM/Leave/Time...)
+19. Barre recherche globale
+20. Masquer menu ‹
+21. Bouton Upgrade
 
 === TIME (22-26) ===
-- Sélection Employee Name (* Required)
-- Timesheets Pending Action
-- Période dates (début - fin)
-- Sous-module Attendance
-- Sous-module Project Info
+22. Employee Name * Required
+23. Timesheets Pending Action
+24. Dates période
+25. Attendance
+26. Project Info
 
 === RECRUITMENT (27-34) ===
-- Recherche avancée (Job Title/Vacancy/Hiring Manager/Status/Candidate Name/Keywords/Date/Method)
-- Recherche par mots-clés (virgules)
-- Filtre date (From/To)
-- Ajout candidat (+ Add)
-- Liste candidats (Vacancy/Candidate/Hiring Manager/Date/Status)
-- Statuts candidature (Initiated, Shortlisted)
-- View candidat (👁️)
-- Download CV candidat (⬇️)
+27. Recherche Job Title/Vacancy/Hiring Manager/Status
+28. Mots-clés virgules
+29. Filtre Date From/To
+30. + Add candidat
+31. Liste Vacancy/Candidate/Manager/Date/Status
+32. Statuts (Initiated, Shortlisted)
+33. 👁️ View
+34. ⬇️ Download CV
 
 === MY INFO (35-43) ===
-- Consultation Personal Details (Nom/ID/Permis/Nationalité/État civil/Date naissance/Genre)
-- Format ID multiples (Employee Id, Other Id)
-- Date picker (License Expiry, Date of Birth)
-- Menu latéral (Contact Details/Emergency Contacts/Dependents/Immigration/Job/Salary/Report-to)
-- Custom Fields (Blood Type)
-- Save Custom Fields
-- Attachments (ajout + Add)
-- Métadonnées fichiers (Name/Description/Size/Type/Date/Added By)
-- Edit/Delete/TéléchargerAttachment
+35. Personal Details (Nom/ID/Nationalité/Genre)
+36. Date picker
+37. Menu (Contact/Emergency/Dependents/Job/Salary)
+38. Custom Fields
+39. Save Custom Fields
+40. Attachments + Add
+41. Métadonnées (Name/Size/Type/Date)
+42. Edit Attachment
+43. Delete Attachment
 
 === PERFORMANCE (44-50) ===
-- Filtres Employee Name/Job Title/Sub Unit/Review Status/From Date/To Date
-- Filtre Include Current Employees Only
-- Informations (Review Period/Due Date/Review Status)
-- Onglet Configure
-- Onglet Manage Reviews
-- Onglet My Trackers
-- Onglet Employee Trackers
+44. Filtres Employee/Job/Sub Unit/Status/Date
+45. Include Current Only
+46. Review Period/Due Date/Status
+47. Configure
+48. Manage Reviews
+49. My Trackers
+50. Employee Trackers
 
 === DIRECTORY (51-54) ===
-- Recherche Employee Name/Job Title/Location
-- Cartes visuels employés
-- Affichage "Records Found"
+51. Recherche Name/Title/Location
+52. Cartes visuels
+53. Records Found
 
 === CLAIM (55-63) ===
-- Filtres Employee Name/Reference Id/Event Name/Status/dates
-- Multi-devises (INR, DZD, CAD)
-- Cycle de vie réclamation (Initiated, Submitted)
-- Bouton Assign Claim
-- Onglet Submit Claim
-- Onglet My Claims
-- Onglet Employee Claims
-- View Details
+55. Filtres Employee/Reference/Event/Status/Date
+56. Multi-devises
+57. Statut Initiated/Submitted
+58. Assign Claim
+59. Submit Claim
+60. My Claims
+61. Employee Claims
+62. View Details
 
 === BUZZ (64-70) ===
-- Création publication ("What's on your mind?")
-- Bouton Post
-- Share Photos
-- Share Video
-- Like/Comment/Share
-- Tri Most Recent/Liked/Commented
-- Widget Upcoming Anniversaries
+64. What's on your mind?
+65. Post
+66. Share Photos
+67. Share Video
+68. Like/Comment/Share
+69. Tri Most Recent/Liked
+70. Upcoming Anniversaries
 
 ---
-Génère AU FORMAT REQUIRED - MINIMUM 20 user stories.
-Chaque fonctionnalité ci-dessus = 1 user story.
+CRITÈRES OBLIGATOIRES pour chaque story:
+- [ ] Utilise les critères du FICHIER d'exigences
+- [ ] Pas de "Critère à définir"
+- [ ] 70 user stories MINIMUM
 ---
 """
     
