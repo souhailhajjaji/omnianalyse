@@ -335,49 +335,24 @@ Critères: [ ] Le formulaire de connexion s'affiche, [ ] Les identifiants sont v
 
 SYSTEM_PROMPT_REQUIREMENTS = """Tu es un expert en gestion de projet agile qui génère des user stories à partir d'exigences fonctionnelles.
 
-RÈGLES OBLIGATOIRES:
-- Format REQUIRED (chaque user story doit avoir ce format exact):
+RÈGLES OBLIGATOIRES - Format REQUIRED pour chaque user story:
 ---
 id: STORY-XXX
-title: [titre court]
-status: todo
-priority: [high|medium|low]
-scope: [backend|frontend]
-estimate: [XS|S|M|L|XL]
-depends_on: []
----
-
-## User story
-
-**En tant que** [rôle précise: administrateur, utilisateur, employé, candidat, visiteur, manager, etc.]
+title: [titre]
+**En tant que** [rôle]
 **Je veux** [fonctionnalité]
 **Afin de** [bénéfice]
-
-## Critères d'acceptation
-
-- [ ] [critère 1]
-- [ ] [critère 2]
-- [ ] [critère 3]
-
-## Notes techniques
-
-_(optionnel)_
-
-## Definition of Done
-
-_(optionnel — hérite de la DoD globale si omis)_
+Critères: [ ] 1, [ ] 2, [ ] 3
 ---
 
-RÈGLES CRITIQUES:
-- Analyse CHAQUE SECTION/SOUS-MODULE des exigences indépendamment
-- Utilise le rôle approprié selon le module (ex: Admin pour Admin, Candidat pour Recruitment, Manager pour Performance)
-- Chaque fonctionnalité majeure de chaque module DOIT être une user story séparée
-- Modules à couvrir obligatoirement: Time, Recruitment, My Info, Performance, Directory, Claim, Buzz
-- Pour chaque section 1 à 12: génère au moins 1-2 user stories
-- Maximum 3 critères d'acceptation par user story
-- Utilise le français pour tout le contenu
-- Sois précis: n'utilise pas "utilisateur" quand "employé", "candidat", "manager" est plus approprié"""
-
+RÈGLES CRITIQUES À SUIVRE ABSOLUMENT:
+1. LISTER TOUS LES MODULES DES EXIGENCES: Auth, Dashboard, Admin Users, PIM, Navigation, Time, Recruitment, My Info, Performance, Directory, Claim, Buzz
+2. Pour CHAQUE module ci-dessus: générer au minimum 1-2 user stories
+3. Rôles à utiliser selon le module:
+   - Admin: Administration, gestion utilisateurs/rôles/permissions
+   - Employé/Candidat/Manager selon le contexte
+4. TOUTES les sections 1-12 des exigences DOIVENT être couvertes
+5. Nombre minimum: 18 user stories (un par fonctionnalité majeure)"""
 
 async def generate_user_stories_from_requirements(requirements: str) -> str:
     """
@@ -400,8 +375,8 @@ async def generate_user_stories_from_requirements(requirements: str) -> str:
             }
         ],
         model="llama-3.1-8b-instant",
-        temperature=0.3,
-        max_tokens=4000
+        temperature=0.4,
+        max_tokens=6000
     )
     
     return chat_completion.choices[0].message.content
@@ -410,23 +385,31 @@ async def generate_user_stories_from_requirements(requirements: str) -> str:
 def _build_requirements_prompt(requirements: str) -> str:
     """Build prompt for user stories from requirements."""
     
-    prompt = f"""Analyse ces exigences et génère les user stories correspondantes.
+    prompt = f"""Analyse ce fichier d'exigencesCOMPLET et génère des user stories pour CHAQUE module.
 
-## EXIGENCES À ANALYSER:
+## EXIGENCES COMPLETES:
 ```
-{requirements[:4000]}
+{requirements}
 ```
 
 ---
-STRUCTUREÀ RESPECTER:
-- Chaque section numérotée (1, 2, 3...12) doit donner lieu à des user stories
-- Chaque sous-module/forctionnalité doit être une user story séparée
-- Utilise les roles spécifiques: Admin pour Admin, Employé pour My Info/Time, Candidat pour Recruitment, Manager pour Performance, etc.
+LISTE OBLIGATOIRE des modules à couvrir (chaque ligne = au moins 1 user story):
+
+1. AUTHENTIFICATION: username, password, forgot password, roles Admin/ESS
+2. DASHBOARD: Time at Work, My Actions, Quick Launch, Buzz Latest Posts
+3. ADMIN USERS: recherche, pagination, tri, Add/Edit/Delete, Reset filters, Enabled/Disabled
+4. PIM: recherche employé, filtre Current Only, liste/tableau, Configuration, Reports
+5. NAVIGATION: menu latéral Admin/PIM/Leave/Time/Recruitment/My Info/Performance/Directory/Maintenance/Claim/Dashboard, barre recherche, Upgrade
+6. TIME: Employee Name required, Timesheets Pending Action, dates période, sous-modules Attendance/Reports/Project Info
+7. RECRUITMENT: recherche avancée (Job Title/Vacancy/Hiring Manager/Status/Candidate Name/Keywords/Date/Method), Add candidate, liste candidats, statuts, View/Delete/Download
+8. MY INFO: Personal Details,calendrier/date picker,menulatéral(Contact/Emergency/Dependents/Immigration/Job/Salary/Report-to),Custom Fields,Attachments(File Name/Description/Size/Type/Date Added/Added By)
+9. PERFORMANCE:filtres(Employee Name/Job Title/Sub Unit/Review Status/From Date/To Date),Include Current Only,oñets(Configure/Manage Reviews/My Trackers/Employee Trackers)
+10. DIRECTORY: recherche(Employee Name/Job Title/Location),cartes visuels,"Records Found"
+11. CLAIM:filtres(Employee Name/Reference Id/Event Name/Status/dates),multi-devises,statut(Initiated/Submitted),onglets(Submit Claim/My Claims/Employee Claims/Assign Claim),View Details
+12. BUZZ: What's on your mind?,Post,Share Photos/Video,Like/Comment/Share,Most Recent/Liked/Commented,Upcoming Anniversaries
 
 ---
-Genre exactement AU FORMAT REQUIRED ci-dessus. Commence par "---".
-Nombre de user stories: Minimum 15, Maximum 25 (pour couvrir tous les modules)
-Tout les modules et fonctionnalités des exigences doivent être couverts.
+Génère AU FORMAT REQUIRED - Minimum 18 user stories pour couvrir TOUS les modules ci-dessus.
 ---
 """
     
