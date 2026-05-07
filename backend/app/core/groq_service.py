@@ -402,7 +402,7 @@ async def generate_user_stories_from_requirements(requirements: str) -> str:
         ],
         model="llama-3.1-8b-instant",
         temperature=0.3,
-        max_tokens=6000
+        max_tokens=4500
     )
     
     return chat_completion.choices[0].message.content
@@ -415,19 +415,21 @@ def _build_requirements_prompt(requirements: str) -> str:
 
 ## EXIGENCES À ANALYSER:
 ```
-{requirements[:3000]}
+{requirements[:1800]}
 ```
 
 ---
-CONSEILS POUR IDENTIFIER LES RÔLES:
+CONSEILS POUR IDENTIFIER LES ROLES:
 - Lis attentivement les exigences
-- Identifie tous les rôles mentionnés: administrateur, utilisateur, employé, visiteur, gestionnaire, etc.
+- Identifie tous les roles mentionnes: administrateur, utilisateur, employe, visiteur, gestionnaire, etc.
 - Chaque fonctionnalite est liee a un role specifique
-- Par exemple:
-  * "L'administrateur peut ajouter/modifier/supprimer des employes" - role: administrateur
-  * "L'employe peut consulter ses informations" - role: employe
-  * "L'utilisateur peut se connecter" - role: utilisateur
+- UNIQUEMENT UN SEUL ROLE PAR USER STORY - Pas de duplication
+- NE PAS REPETER les memes functionalities
+- Une seule user story par fonctionnalite
 
+---
+Genere exactement AU FORMAT REQUIRED ci-dessus. Commence par "---".
+Nombre de user stories: Minimum 35, Maximum 50 (OBLIGATOIRE)
 ---
 Genere exactement AU FORMAT REQUIRED ci-dessus. Commence par "---".
 Nombre de user stories: Minimum 35, Maximum 65 (OBLIGATOIRE - chaque exigence doit devenir une user story)
