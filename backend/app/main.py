@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, users, scenarios, user_stories, user_stories_requirements
+from app.routers import auth, users, scenarios, user_stories, user_stories_requirements, sfd
+from dotenv import load_dotenv
+import os
+
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 app = FastAPI(title="OmniAnalyse API", version="1.0.0")
 
@@ -17,6 +21,7 @@ app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(scenarios.router, prefix="/scenarios", tags=["scenarios"])
 app.include_router(user_stories.router, prefix="/userstories", tags=["userstories"])
 app.include_router(user_stories_requirements.router, prefix="/requirements", tags=["requirements"])
+app.include_router(sfd.router, prefix="/sfd", tags=["sfd"])
 
 @app.get("/")
 def root():

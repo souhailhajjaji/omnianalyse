@@ -21,3 +21,17 @@ class Token(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+
+class SFDInput(BaseModel):
+    content: str
+    min_stories: int = 60
+    save_to_file: bool = True
+
+
+class SFDAnalysisResult(BaseModel):
+    project_name: str
+    actors: list
+    modules: list
+    functional_requirements: list
+    user_stories_count: int

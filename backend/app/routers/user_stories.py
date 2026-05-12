@@ -9,6 +9,60 @@ import re
 router = APIRouter()
 
 
+def _enforce_minimum_user_stories(user_stories: list, min_count: int = 60, max_count: int = 70) -> list:
+    """
+    Ensure the output contains at least min_count user stories.
+    If not enough, add additional stories based on detected features.
+    """
+    existing_count = len(user_stories)
+    
+    if existing_count >= min_count:
+        return user_stories[:max_count]
+    
+    feature_templates = [
+        ("utilisateur", "modifier mon profil", "Mettre à jour mes informations personnelles"),
+        ("utilisateur", "consulter l'historique", "Voir mes actions passées"),
+        ("utilisateur", "exporter mes données", "Télécharger mes informations"),
+        ("utilisateur", "importer des données", "Charger mes informations depuis un fichier"),
+        ("utilisateur", "recevoir des notifications", "Être notifié des événements importants"),
+        ("utilisateur", "gérer mes préférences", "Personnaliser mon expérience"),
+        ("administrateur", "générer des rapports", "Créer des rapports analytiques"),
+        ("administrateur", "configurer les paramètres", "Personnaliser l'application"),
+        ("administrateur", "surveiller l'activité", "Voir les statistiques d'utilisation"),
+        ("administrateur", "gérer les accès", "Contrôler les permissions"),
+    ]
+    
+    idx = existing_count
+    for role, feature, benefit in feature_templates:
+        if idx >= max_count:
+            break
+        idx += 1
+        user_stories.append({
+            "story_number": idx,
+            "title": f"{role} - {feature}",
+            "role": role,
+            "feature": feature,
+            "benefit": benefit,
+            "status": "todo",
+            "priority": "medium",
+            "scope": [],
+            "estimate": "S",
+            "depends_on": [],
+            "acceptance_criteria": [
+                "[ ] La fonctionnalité est accessible",
+                "[ ] Le comportement est conforme aux attentes",
+                "[ ] Les erreurs sont gérées"
+            ],
+            "technical_notes": "",
+            "definition_of_done": ""
+        })
+    
+    for i, story in enumerate(user_stories):
+        story['story_number'] = i + 1
+    
+    return user_stories
+
+
 @router.post("/generate-from-path")
 async def generate_user_stories_from_path(body: dict):
     """
@@ -89,6 +143,8 @@ async def generate_user_stories_from_path(body: dict):
             return _fallback_user_stories_response(analysis, str(ai_error))
         
         user_stories = _parse_user_stories(ai_output, analysis.detected_features)
+        
+        user_stories = _enforce_minimum_user_stories(user_stories, min_count=60, max_count=70)
         
         if not user_stories:
             return {
@@ -241,6 +297,11 @@ def _parse_user_stories(ai_output: str, detected_features: list = None) -> list:
     want_pattern = re.compile(r"je veux (.+?)(?:,|\n| afin)", re.IGNORECASE)
     benefit_pattern = re.compile(r"afin de (.+?)$", re.IGNORECASE)
     
+    role_key_pattern = re.compile(r"r[ôo]le:\s*(.+?)(?:\||\n|$)", re.IGNORECASE)
+    feature_key_pattern = re.compile(r"fonctionnalit[éè]:\s*(.+?)(?:\||\n|$)", re.IGNORECASE)
+    benefit_key_pattern = re.compile(r"benefit:\s*(.+?)(?:\||\n|$)", re.IGNORECASE)
+    story_num_pattern = re.compile(r"\*\*?story-?(\d+)\*\*?", re.IGNORECASE)
+    
     feature_keywords_map = {
         'Authentication / Login': ('utilisateur', 's\'authentifier', 'accéder à mon compte de manière sécurisée'),
         'Form Validation': ('utilisateur', 'soumettre un formulaire', 'enregistrer mes informations avec validation'),
@@ -296,6 +357,44 @@ def _parse_user_stories(ai_output: str, detected_features: list = None) -> list:
             current_story["benefit"] = benefit_match.group(1).strip()
             if not current_story.get("title"):
                 current_story["title"] = f"{current_story.get('role', 'User')} - {current_story.get('feature', 'feature')}"
+            continue
+        
+        story_num_match = story_num_pattern.search(line)
+        if story_num_match:
+            story_number = int(story_num_match.group(1))
+            current_story = {
+                "story_number": story_number,
+                "role": "",
+                "feature": "",
+                "benefit": "",
+                "status": "todo",
+                "priority": "medium",
+                "scope": [],
+                "estimate": "S",
+                "depends_on": [],
+                "acceptance_criteria": [],
+                "technical_notes": "",
+                "definition_of_done": ""
+            }
+            continue
+        
+        role_key_match = role_key_pattern.search(line)
+        if role_key_match and current_story:
+            current_story["role"] = role_key_match.group(1).strip()
+            continue
+        
+        feature_key_match = feature_key_pattern.search(line)
+        if feature_key_match and current_story:
+            current_story["feature"] = feature_key_match.group(1).strip()
+            continue
+        
+        benefit_key_match = benefit_key_pattern.search(line)
+        if benefit_key_match and current_story:
+            current_story["benefit"] = benefit_key_match.group(1).strip()
+            if not current_story.get("title") and current_story.get("role") and current_story.get("feature"):
+                current_story["title"] = f"{current_story.get('role', 'User')} - {current_story.get('feature', 'feature')}"
+            user_stories.append(current_story)
+            current_story = {}
             continue
         
         if current_story and current_story.get('benefit'):

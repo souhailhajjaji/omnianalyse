@@ -1,5 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import * as pdfjsLib from 'pdfjs-dist';
+import Tesseract from 'tesseract.js';
+
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs';
+(pdfjsLib as any).GlobalWorkerOptions.standardFontDataUrl = '/assets/standard_fonts/';
 
 interface Step {
   keyword: string;
@@ -1528,6 +1533,73 @@ export class DashboardComponent {
     this.loadMaquetteContent();
   }
 
+  async extractTextFromPDF(file: File): Promise<string> {
+    const arrayBuffer = await file.arrayBuffer();
+    
+    try {
+      const loadingTask = pdfjsLib.getDocument({ 
+        data: arrayBuffer
+      });
+      const pdf = await loadingTask.promise;
+      let text = '';
+      
+      console.log(`PDF has ${pdf.numPages} pages`);
+      
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        text += pageText + '\n\n';
+        console.log(`Page ${i} extracted: ${pageText.length} chars`);
+      }
+
+      const trimmedText = text.trim();
+      if (trimmedText.length < 100) {
+        console.log('Text too short, using OCR for scanned PDF:', file.name);
+        return await this.extractTextFromPDFWithOCR(file);
+      }
+      
+      return text;
+    } catch (e) {
+      console.warn('PDF text extraction failed, trying OCR:', e);
+      return await this.extractTextFromPDFWithOCR(file);
+    }
+  }
+
+  async extractTextFromPDFWithOCR(file: File): Promise<string> {
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    let allText = '';
+    
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const scale = 2.5;
+      const viewport = page.getViewport({ scale });
+      
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+      if (!context) throw new Error('Canvas context not available');
+      
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      } as any).promise;
+      
+      const result = await Tesseract.recognize(canvas, 'eng', {
+        logger: m => console.log(`OCR Page ${pageNum}:`, Math.round(m.progress * 100) + '%')
+      });
+      
+      allText += result.data.text + '\n\n';
+    }
+    
+    return allText;
+  }
+
   async loadMaquetteContent() {
     const files = this.maquetteFiles();
     if (files.length === 0) {
@@ -1538,7 +1610,12 @@ export class DashboardComponent {
     let content = '';
     for (const file of files) {
       try {
-        const fileContent = await file.text();
+        let fileContent: string;
+        if (file.name.toLowerCase().endsWith('.pdf')) {
+          fileContent = await this.extractTextFromPDF(file);
+        } else {
+          fileContent = await file.text();
+        }
         content += `\n\n=== ${file.name} ===\n\n${fileContent}`;
       } catch (e) {
         console.error('Error reading file:', file.name, e);
@@ -1559,7 +1636,7 @@ export class DashboardComponent {
     this.userStoryResults.set(null);
 
     try {
-      const response = await fetch('http://localhost:8001/requirements/generate-from-requirements', {
+      const response = await fetch('http://127.0.0.1:8000/requirements/generate-from-requirements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: content, save_to_file: true })
@@ -1592,141 +1669,189 @@ export class DashboardComponent {
     this.displayMode.set(this.displayMode() === 'cards' ? 'markdown' : 'cards');
   }
 
-  private parseMarkdownUserStories(markdown: string): ParsedUserStory[] {
+private parseMarkdownUserStories(markdown: string): ParsedUserStory[] {
     const stories: ParsedUserStory[] = [];
+    const lines = markdown.split('\n');
+    let currentStory: any = null;
 
-    // Split into blocks separated by --- lines
-    const parts = markdown.split(/(?:^|\n)---+(?:\n|$)/);
+    for (const line of lines) {
+      const l = line.trim();
+      const lower = l.toLowerCase();
 
-    // Merge consecutive parts: a metadata block (with id:, title:) followed by
-    // a content block (with En tant que, Je veux) belong to the same story.
-    const mergedBlocks: string[] = [];
-    let pendingMeta = '';
-
-    for (const part of parts) {
-      const trimmed = part.trim();
-      if (!trimmed || trimmed.length < 5) continue;
-
-      const hasId = /^id\s*:/im.test(trimmed);
-      const hasStoryContent = /en tant que/i.test(trimmed) || /je veux/i.test(trimmed);
-
-      if (hasId && !hasStoryContent) {
-        // This is a metadata-only block, save it to merge with the next content block
-        pendingMeta = trimmed;
-      } else if (hasStoryContent) {
-        // This is a content block — merge with pending metadata if any
-        mergedBlocks.push(pendingMeta ? pendingMeta + '\n' + trimmed : trimmed);
-        pendingMeta = '';
-      } else if (hasId && hasStoryContent) {
-        // Complete block with both metadata and content
-        mergedBlocks.push(pendingMeta ? pendingMeta + '\n' + trimmed : trimmed);
-        pendingMeta = '';
+      if (lower.startsWith('voici') || lower.startsWith('génère') || lower.startsWith('user story') || lower.startsWith('fonctionnalité')) {
+        continue;
       }
-      // Skip blocks that have neither id nor story content (noise)
+
+      // ## STORY-001
+      const storyMatch = l.match(/^##\s*story-(\d+)/i);
+      if (storyMatch) {
+        if (currentStory && currentStory.role) stories.push(currentStory);
+        currentStory = {
+          id: `STORY-${storyMatch[1]}`,
+          title: '', role: '', feature: '', benefit: '',
+          status: 'todo', priority: 'medium',
+          scope: [], estimate: 'S', depends_on: [], acceptance_criteria: [],
+          in_acceptance_section: false
+        };
+        continue;
+      }
+
+// Status: Todo or **Status:** todo
+      if (currentStory && (/^status:\s*todo/i.test(l) || /^\*\*status:\*\*\s*todo/i.test(l))) {
+        currentStory.status = 'todo';
+        continue;
+      }
+
+      // Priority: Medium or **Priority:** Medium
+      if (currentStory && (/^priority:\s*(low|medium|high|critical)/i.test(l) || /^\*\*priority:\*\*\s*(low|medium|high|critical)/i.test(l))) {
+        currentStory.priority = l.replace(/^\*\*priority:\*\*\s*/i, '').replace(/^priority:\s*/i, '').trim().toLowerCase();
+        continue;
+      }
+
+      // Story Points: M or **Story Points:** M
+      if (currentStory && (/^story points:\s*(s|m|l|xl)/i.test(l) || /^\*\*story points:\*\*\s*(s|m|l|xl)/i.test(l))) {
+        currentStory.estimate = l.replace(/^\*\*story points:\*\*\s*/i, '').replace(/^story points:\s*/i, '').trim().toUpperCase();
+        continue;
+      }
+
+      // Module: [Module] or **Module:** [Module]
+      if (currentStory && (/^module:\s*(.+)/i.test(l) || /^\*\*module:\*\*\s*(.+)/i.test(l))) {
+        const modMatch = l.match(/(?:module:\s*|\*\*module:\*\*\s*)(.+)/i);
+        if (modMatch) {
+          currentStory.scope = [modMatch[1].trim()];
+        }
+        continue;
+      }
+
+      // ### User Story section
+      if (/^###\s*user story$/i.test(l) || /^\*\*user story:\*\*$/i.test(l)) {
+        continue;
+      }
+
+      // En tant que: [auteur] (with colon)
+      if (currentStory && /^en tant que:\s*(.+)/i.test(l)) {
+        currentStory.role = l.replace(/^en tant que:\s*/i, '').trim();
+        continue;
+      }
+
+      // Je veux: [objectif] (with colon)
+      if (currentStory && /^je veux:\s*(.+)/i.test(l)) {
+        currentStory.feature = l.replace(/^je veux:\s*/i, '').trim();
+        continue;
+      }
+
+      // Afin de: [valeur] (with colon)
+      if (currentStory && /^afin de:\s*(.+)/i.test(l)) {
+        currentStory.benefit = l.replace(/^afin de:\s*/i, '').trim();
+        if (currentStory.role && currentStory.feature) {
+          currentStory.title = `${currentStory.role} - ${currentStory.feature.split(' ').slice(0,4).join(' ')}`;
+        }
+        continue;
+      }
+
+      // Indented En tant que [auteur], (under User Story header)
+      if (currentStory && /^\s*(?:-\s+)?en tant que\s+(.+)[,.]?\s*$/i.test(l)) {
+        const match = l.match(/^\s*(?:-\s+)?en tant que\s+(.+?)[,.]?\s*$/i);
+        if (match) {
+          currentStory.role = match[1].trim();
+          continue;
+        }
+      }
+
+      // Standalone En tant que [auteur],
+      if (currentStory && /^en tant que\s+(.+),?\s*$/i.test(l)) {
+        currentStory.role = l.replace(/^en tant que\s+/i, '').replace(/,\s*$/, '').trim();
+        continue;
+      }
+
+      // Indented Je veux [objectif],
+      if (currentStory && /^\s*(?:-\s+)?je veux\s+(.+)[,.]?\s*$/i.test(l)) {
+        const match = l.match(/^\s*(?:-\s+)?je veux\s+(.+?)[,.]?\s*$/i);
+        if (match) {
+          currentStory.feature = match[1].trim();
+          continue;
+        }
+      }
+
+      // Standalone Je veux [objectif],
+      if (currentStory && /^je veux\s+(.+),?\s*$/i.test(l)) {
+        currentStory.feature = l.replace(/^je veux\s+/i, '').replace(/,\s*$/, '').trim();
+        continue;
+      }
+
+      // Indented Afin de [valeur].
+      if (currentStory && /^\s*(?:-\s+)?afin de\s+(.+)[,.]?\s*$/i.test(l)) {
+        const match = l.match(/^\s*(?:-\s+)?afin de\s+(.+?)[,.]?\s*$/i);
+        if (match) {
+          currentStory.benefit = match[1].trim().replace(/[,.]+$/, '');
+          if (currentStory.role && currentStory.feature) {
+            currentStory.title = `${currentStory.role} - ${currentStory.feature.split(' ').slice(0,4).join(' ')}`;
+          }
+          continue;
+        }
+      }
+
+      // Standalone Afin de [valeur].
+      if (currentStory && /^afin de\s+(.+)\.?$/i.test(l)) {
+        currentStory.benefit = l.replace(/^afin de\s+/i, '').replace(/\.\s*$/, '').trim();
+        if (currentStory.role && currentStory.feature) {
+          currentStory.title = `${currentStory.role} - ${currentStory.feature.split(' ').slice(0,4).join(' ')}`;
+        }
+        continue;
+      }
+
+      // ### User Story section
+      if (/^###\s*user story$/i.test(l)) {
+        continue;
+      }
+
+      // En tant que [acteur],
+      if (currentStory && /^en tant que\s+(.+),$/i.test(l)) {
+        currentStory.role = l.replace(/^en tant que\s+/i, '').replace(/,\s*$/, '').trim();
+        continue;
+      }
+
+      // Je veux [objectif],
+      if (currentStory && /^je veux\s+(.+),$/i.test(l)) {
+        currentStory.feature = l.replace(/^je veux\s+/i, '').replace(/,\s*$/, '').trim();
+        continue;
+      }
+
+      // Afin de [valeur].
+      if (currentStory && /^afin de\s+(.+)\.?$/i.test(l)) {
+        currentStory.benefit = l.replace(/^afin de\s+/i, '').replace(/\.\s*$/, '').trim();
+        if (currentStory.role && currentStory.feature) {
+          currentStory.title = `${currentStory.role} - ${currentStory.feature.split(' ').slice(0,4).join(' ')}`;
+        }
+        continue;
+      }
+
+      // ### Critères d'acceptation section
+      if (/^###\s*critères?[' ]?d[' ]?acceptation$/i.test(l) || /^\*\*critères?[' ]?d[' ]?acceptation:\*\*$/i.test(l)) {
+        if (currentStory) currentStory.in_acceptance_section = true;
+        continue;
+      }
+
+      // Stop parsing bullet points after User Story section ends
+      if (currentStory && !currentStory.in_acceptance_section) {
+        // Check for next STORY or other section header
+        if (/^##\s*story-/i.test(l) || /^###\s*(?!user story|critères)/i.test(l)) {
+          currentStory.in_acceptance_section = true;
+        }
+      }
+
+      // * Critère 1 (bullet points) - including indented and checkbox format
+      if (currentStory && currentStory.in_acceptance_section && /^[>\-\s]*[*\-]\s+\[?\s*\]?\s*(.+)/i.test(l)) {
+        if (!currentStory.acceptance_criteria) currentStory.acceptance_criteria = [];
+        const criteriaMatch = l.match(/^[>\-\s]*[*\-]\s+\[?\s*\]?\s*(.+)/i);
+        if (criteriaMatch) {
+          currentStory.acceptance_criteria.push(criteriaMatch[1].trim());
+        }
+        continue;
+      }
     }
 
-    // Parse each merged block into a story
-    const usedIds = new Set<string>();
-    let storyIndex = 0;
-
-    for (const block of mergedBlocks) {
-      const lines = block.split('\n');
-
-      let id = '';
-      let title = '';
-      let status = 'todo';
-      let priority = 'medium';
-      let scope = '';
-      let estimate = 'S';
-      let role = '';
-      let feature = '';
-      let benefit = '';
-      let acceptanceCriteria: string[] = [];
-
-      for (const line of lines) {
-        const l = line.trim();
-
-        if (l.match(/^id\s*:/i) && !id) {
-          id = l.replace(/^id\s*:\s*/i, '').trim();
-        }
-        if (l.match(/^title\s*:/i) && !title) {
-          title = l.replace(/^title\s*:\s*/i, '').trim();
-        }
-        if (l.match(/^status\s*:/i)) {
-          status = l.replace(/^status\s*:\s*/i, '').trim() || 'todo';
-        }
-        if (l.match(/^priority\s*:/i)) {
-          priority = l.replace(/^priority\s*:\s*/i, '').trim() || 'medium';
-        }
-        if (l.match(/^scope\s*:/i)) {
-          scope = l.replace(/^scope\s*:\s*/i, '').trim();
-        }
-        if (l.match(/^estimate\s*:/i)) {
-          estimate = l.replace(/^estimate\s*:\s*/i, '').trim() || 'S';
-        }
-
-        // Extract user story fields (handle both **bold** and plain formats)
-        const roleMatch = l.match(/(?:\*\*)?en tant que(?:\*\*)?\s+(.+)/i);
-        if (roleMatch) {
-          role = roleMatch[1].replace(/\*\*/g, '').replace(/,\s*$/, '').trim();
-        }
-        const featureMatch = l.match(/(?:\*\*)?je veux(?:\*\*)?\s+(.+)/i);
-        if (featureMatch) {
-          feature = featureMatch[1].replace(/\*\*/g, '').replace(/,\s*$/, '').trim();
-        }
-        const benefitMatch = l.match(/(?:\*\*)?afin de(?:\*\*)?\s+(.+)/i);
-        if (benefitMatch) {
-          benefit = benefitMatch[1].replace(/\*\*/g, '').replace(/,\s*$/, '').trim();
-        }
-
-        if (l.startsWith('- [') || l.startsWith('* [')) {
-          acceptanceCriteria.push(l);
-        }
-      }
-
-      // Skip stories that are clearly placeholders or empty
-      const isPlaceholder = (
-        (!role && !feature && !benefit) ||
-        (feature === 'fonctionnalité' && benefit === 'bénéfice') ||
-        (feature === '[fonctionnalité]' && benefit === '[bénéfice]')
-      );
-      if (isPlaceholder) continue;
-
-      // Generate unique ID if missing or duplicate
-      storyIndex++;
-      if (!id) {
-        id = `STORY-${String(storyIndex).padStart(3, '0')}`;
-      }
-      // Ensure unique IDs
-      let uniqueId = id;
-      let suffix = 1;
-      while (usedIds.has(uniqueId)) {
-        uniqueId = `${id}-${suffix}`;
-        suffix++;
-      }
-      usedIds.add(uniqueId);
-
-      if (!title) {
-        title = `${role || 'utilisateur'} - ${(feature || 'fonctionnalité').substring(0, 40)}`;
-      }
-
-      stories.push({
-        id: uniqueId,
-        title: title,
-        status: status,
-        priority: priority,
-        scope: scope ? [scope] : [],
-        estimate: estimate,
-        depends_on: [],
-        role: role || 'utilisateur',
-        feature: feature || '[Fonctionnalité à définir]',
-        benefit: benefit || '[Bénéfice à définir]',
-        acceptance_criteria: acceptanceCriteria.length > 0
-          ? acceptanceCriteria
-          : ['- [ ] Critère à définir']
-      });
-    }
-
+    if (currentStory && currentStory.role) stories.push(currentStory);
     return stories;
   }
 
@@ -1749,7 +1874,7 @@ export class DashboardComponent {
 
     try {
       const content = await file.text();
-      const endpoint = 'http://localhost:8001/scenarios/generate';
+      const endpoint = 'http://localhost:8000/scenarios/generate';
       
       const response = await fetch(endpoint, {
         method: 'POST',
